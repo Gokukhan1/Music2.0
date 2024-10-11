@@ -24,7 +24,7 @@ from ERAVIBES.utils.database import (
     is_nonadmin_chat,
     set_loop,
 )
-from ERAVIBES.core.call import VIP
+from ERAVIBES.core.call import ERA
 
 
 @app.on_message(
