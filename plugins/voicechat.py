@@ -3,7 +3,7 @@ from pyrogram import filters
 from pyrogram.enums import ChatType
 from strings import get_string
 from ERAVIBES import app
-from ERAVIBES.utils import VIPbin
+from ERAVIBES.utils import ERAbin
 
 from ERAVIBES.utils.database import get_assistant, get_lang
 import asyncio
