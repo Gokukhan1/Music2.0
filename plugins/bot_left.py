@@ -16,7 +16,7 @@ from ERAVIBES.utils.database import (
     is_nonadmin_chat,
     set_loop,
 )
-from ERAVIBES.core.call import VIP
+from ERAVIBES.core.call import ERA
 
 photo = [
     "https://telegra.ph/file/1949480f01355b4e87d26.jpg",
