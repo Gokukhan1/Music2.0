@@ -6,7 +6,7 @@ from ERAVIBES import app
 import os
 from config import OWNER_ID
 from ERAVIBES.misc import SUDOERS
-from ERAVIBES.utils.pastebin import VIPbin
+from ERAVIBES.utils.pastebin import ERAbin
 
 
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
