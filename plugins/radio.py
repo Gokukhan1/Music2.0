@@ -31,6 +31,14 @@ RADIO_STATION = {
     "ᴘᴛᴄ ᴍᴜsɪᴄ": "https://streaming.ptcplay.com/ptcMusicINOne/smil:Live.smil/playlist.m3u8",
     "𝟿xᴍ ᴍᴜsɪᴄ": "https://d2q8p4pe5spbak.cloudfront.net/bpk-tv/9XM/9XM.isml/index.m3u8",
     "ɴᴇᴡs ʙɪʜᴀʀ ᴊʜᴀʀᴋʜᴀɴᴅ": "https://ythls.armelin.one/channel/UC531MlZA5LUbeGwEN_zcppw.m3u8",
+    "ɴʀᴊ ʜɪᴛs": "http://cdn.nrjaudio.fm/audio1/fr/30001/mp3_128.mp3",
+    "ʙʙᴄ ʀᴀᴅɪᴏ 1": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p",
+    "ʟᴏꜰɪ ʜɪᴘ ʜᴏᴘ ʀᴀᴅɪᴏ": "https://stream.zeno.fm/fss80hsudg0uv",
+    "ᴘɪɴᴋ ꜰᴍ": "http://stream2.uzivo.rs/pink.m3u8",
+    "ɪʙɪᴢᴀ ʜɪᴛs ʀᴀᴅɪᴏ": "http://streamingp.shoutcast.com/IbizaGlobalRadio",
+    "ᴛʀᴀɴᴄᴇ ʟɪᴏɴ": "https://trance.missioncontrolstreams.com:1800/stream",
+    "ʟɪᴄᴏʀɪᴄᴇ ᴍᴜsɪᴄ": "http://air2.radiorecord.ru:805/rr_96.aacp",
+
 }
 
 
