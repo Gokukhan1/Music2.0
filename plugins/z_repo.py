@@ -7,7 +7,7 @@ from ERAVIBES import app
 from ERAVIBES.utils.database import add_served_chat, get_assistant
 
 
-@app.on_message(filters.command("repo"))
+@app.on_message(filters.command(["repo", "epo"], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "R", "r"]))
 async def help(client: Client, message: Message):
     await message.reply_photo(
         photo=f"https://envs.sh/nAV.jpg",
