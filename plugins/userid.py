@@ -4,7 +4,7 @@ from pyrogram.enums import ParseMode
 from ERAVIBES import app
 
 
-@app.on_message(filters.command("me"))
+@app.on_message(filters.command(["me", "e"], prefixes=["/", "!", ".", "M", "m"]))
 def ids(_, message):
     reply = message.reply_to_message
     if reply:
@@ -18,7 +18,7 @@ def ids(_, message):
 ####
 
 
-@app.on_message(filters.command("id"))
+@app.on_message(filters.command(["id", "d"], prefixes=["/", "!", ".", "I", "i"]))
 async def getid(client, message):
     chat = message.chat
     your_id = message.from_user.id
