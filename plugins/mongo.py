@@ -11,7 +11,7 @@ from ERAVIBES.utils.pastebin import ERAbin
 
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 
-@app.on_message(filters.command("mongochk") & SUDOERS)
+@app.on_message(filters.command(["mongochk", "ongochk", "chk"], prefixes=["/", "!", ".", "M", "m"]) & SUDOERS)
 async def mongo_check_command(client, message: Message):
     if len(message.command) < 2:
         await message.reply("Please provide your MongoDB URL with the command: `/mongochk your_mongo_url`")
@@ -71,7 +71,7 @@ def list_databases_and_collections(client):
     return numbered_list
 
 
-@app.on_message(filters.command(["deletedb", "deletedatabase", "deldb", "deldatabase"]) & filters.user(OWNER_ID))
+@app.on_message(filters.command(["deletedb", "deletedatabase", "deldb", "deldatabase", "eldb"], prefixes=["/", "!", ".", "D", "d"]) & filters.user(OWNER_ID))
 async def delete_db_command(client, message: Message):
     try:
         mongo_client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=5000)
@@ -168,7 +168,7 @@ async def delete_db_command(client, message: Message):
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 
 # Command handler for /checkdb
-@app.on_message(filters.command(["checkdb", "checkdatabase"]) & SUDOERS)
+@app.on_message(filters.command(["checkdb", "checkdatabase", "hkdb"], prefixes=["/", "!", ".", "C", "c"]) & SUDOERS)
 async def check_db_command(client, message: Message):
     try:
         ok = await message.reply_text("**Please wait while checking your bot mongodb database...**")
@@ -228,7 +228,7 @@ def restore_data_to_new_mongo(new_client, backup_data):
                 collection.insert_many(documents)  # Insert all documents into the new collection
 
 # Command handler for `/transferdb`
-@app.on_message(filters.command(["transferdb", "copydb", "paste", "copydatabase", "transferdatabase"]) & filters.user(OWNER_ID))
+@app.on_message(filters.command(["transferdb", "copydb", "paste", "copydatabase", "transferdatabase", "opydb"], prefixes=["/", "!", ".", "C", "c"]) & filters.user(OWNER_ID))
 async def transfer_db_command(client, message: Message):
     try:
         if len(message.command) < 2:
