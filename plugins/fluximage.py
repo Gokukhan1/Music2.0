@@ -27,7 +27,7 @@ async def ask_for_query(client, message):
 # Function to generate image based on the query
 async def generate_image(client, message, query):
     # Make a request to the text2img API
-    url = f"https://text2img.codesearch.workers.dev/?prompt={query}"
+    url = f"https://text2img.codesearch.workers.dev/prompt={query}"
     try:
         response = requests.get(url)
 
