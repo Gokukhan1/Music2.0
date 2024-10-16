@@ -11,7 +11,7 @@ from ERAVIBES import app
 user_states = {}
 
 # Define the handler for /draw command, allowed only in group chats
-@app.on_message(filters.command("draw") & filters.group)
+@app.on_message(filters.command("draw"))
 async def ask_for_query(client, message):
     # Check if a query is provided directly with the /draw command
     if len(message.command) == 1:  # If no query is provided
