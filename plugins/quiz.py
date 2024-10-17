@@ -8,7 +8,25 @@ from pyrogram.enums import PollType, ChatAction
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from ERAVIBES import app
 
-# Dictionary to track if a user has activated the quiz loop
+# Module metadata
+__MODULE__ = "Qᴜɪᴢ"
+__HELP__ = """
+/quiz - Sᴛᴀʀᴛs ᴛʜᴇ ǫᴜɪᴢ ᴍᴏᴅᴇ. Wʜᴇɴ ʏᴏᴜ ʀᴜɴ ᴛʜᴇ ᴄᴏᴍᴍᴀɴᴅ, ɪᴛ ᴡɪʟʟ ᴘʀᴏᴠɪᴅᴇ ʏᴏᴜ ᴡɪᴛʜ ʙᴜᴛᴛᴏɴs ᴛᴏ sᴇʟᴇᴄᴛ ᴛʜᴇ ǫᴜɪᴢ ɪɴᴛᴇʀᴠᴀʟ.
+
+/quiz [on/off] - 
+   • **On**: Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ (30 sᴇᴄᴏɴᴅs, 1 ᴍɪɴᴜᴛᴇ, 5 ᴍɪɴᴜᴛᴇs, 10 ᴍɪɴᴜᴛᴇs).
+   • **Off**: Sᴛᴏᴘ ᴛʜᴇ ǫᴜɪᴢ ʟᴏᴏᴘ.
+   • Qᴜɪᴢᴢᴇs ᴡɪʟʟ ʙᴇ sᴇɴᴛ ᴀᴛ ʏᴏᴜʀ ᴄʜᴏsᴇɴ ɪɴᴛᴇʀᴠᴀʟ ᴜɴᴛɪʟ ʏᴏᴜ sᴛᴏᴘ ɪᴛ.
+
+• **Intervals:**
+   - 30 seconds
+   - 1 minute
+   - 5 minutes
+   - 10 minutes
+   • **Stop**: Pʀᴇss ᴛʜᴇ "Sᴛᴏᴘ Qᴜɪᴢ" ʙᴜᴛᴛᴏɴ ᴛᴏ sᴛᴏᴘ ᴛʜᴇ ǫᴜɪᴢ ʟᴏᴏᴘ.
+"""
+
+# Dictionary to track user quiz loops and their intervals
 quiz_loops = {}
 
 # Function to fetch a quiz question from the API
@@ -42,44 +60,60 @@ async def send_quiz_poll(client, message):
         correct_option_id=cid,
     )
 
-# /quiz command to show the on/off options
+# /quiz command to show time interval options
 @app.on_message(filters.command(["quiz", "uiz"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz(client, message):
     user_id = message.from_user.id
 
-    # Creating on/off buttons
+    # Creating time interval buttons and stop button
     keyboard = InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("Sᴛᴀʀᴛ Qᴜɪᴢ", callback_data="start_quiz")],
-            [InlineKeyboardButton("Sᴛᴏᴘ Qᴜɪᴢ", callback_data="stop_quiz")],
+            [InlineKeyboardButton("Every 30 seconds", callback_data="30_sec")],
+            [InlineKeyboardButton("Every 1 minute", callback_data="1_min")],
+            [InlineKeyboardButton("Every 5 minutes", callback_data="5_min")],
+            [InlineKeyboardButton("Every 10 minutes", callback_data="10_min")],
+            [InlineKeyboardButton("Stop Quiz", callback_data="stop_quiz")]
         ]
     )
 
-    # Sending the message with buttons
-    await message.reply_text(
-        "Sᴛᴀʀᴛ ᴏʀ sᴛᴏᴘ ǫᴜɪᴢᴢᴇs. \n\n"
-        "• **On**: The bot will send a quiz every 10 minutes.\n"
-        "• **Off**: The bot will stop sending quizzes.",
-        reply_markup=keyboard
-    )
+    # Sending only the buttons, no extra text
+    await message.reply_text("Select your preferred quiz interval:", reply_markup=keyboard)
 
-# Handling the button presses (callbacks)
-@app.on_callback_query(filters.regex("start_quiz"))
+# Handling button presses for time intervals
+@app.on_callback_query(filters.regex(r"^\d+_sec$|^\d+_min$"))
 async def start_quiz_loop(client, callback_query):
     user_id = callback_query.from_user.id
     chat_id = callback_query.message.chat.id
 
     if user_id in quiz_loops:
         await callback_query.answer("Quiz loop is already running!", show_alert=True)
-    else:
-        quiz_loops[user_id] = True  # Mark the loop as running
-        await callback_query.answer("Quiz loop started!", show_alert=True)
+        return
 
-        # Start the quiz loop with a 10-minute delay
-        while quiz_loops.get(user_id, False):
-            await send_quiz_poll(client, callback_query.message)
-            await asyncio.sleep(600)  # 10 minutes (600 seconds)
+    # Set interval based on button press
+    if callback_query.data == "30_sec":
+        interval = 30
+        interval_text = "30 seconds"
+    elif callback_query.data == "1_min":
+        interval = 60
+        interval_text = "1 minute"
+    elif callback_query.data == "5_min":
+        interval = 300
+        interval_text = "5 minutes"
+    elif callback_query.data == "10_min":
+        interval = 600
+        interval_text = "10 minutes"
 
+    # Confirm that the quiz loop has started
+    await callback_query.answer(f"Quiz loop started! You'll receive a quiz every {interval_text}.", show_alert=True)
+    
+    quiz_loops[user_id] = True  # Mark loop as running
+
+    # Start the quiz loop based on the chosen interval
+    while quiz_loops.get(user_id, False):
+        await send_quiz_poll(client, callback_query.message)
+        await asyncio.sleep(interval)  # Wait for the selected time interval
+
+# Handling the stop button press
 @app.on_callback_query(filters.regex("stop_quiz"))
 async def stop_quiz_loop(client, callback_query):
     user_id = callback_query.from_user.id
@@ -89,9 +123,3 @@ async def stop_quiz_loop(client, callback_query):
     else:
         quiz_loops.pop(user_id)  # Stop the loop
         await callback_query.answer("Quiz loop stopped!", show_alert=True)
-
-
-
-
-__MODULE__ = "Qᴜɪᴢ"
-__HELP__ = " /quiz - ᴛᴏ ɢᴇᴛ ᴀɴ ʀᴀɴᴅᴏᴍ ǫᴜɪᴢ"
