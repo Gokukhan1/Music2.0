@@ -7,7 +7,7 @@ from pyrogram.enums import PollType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from ERAVIBES import app
 
-# Dictionary to track user quiz loops and their intervals
+# Track quiz loops and active polls per user
 quiz_loops = {}
 active_polls = {}  # To track active poll messages for each user
 
@@ -29,20 +29,17 @@ async def fetch_quiz_question():
 
     return question, all_answers, cid
 
-# Function to send a quiz poll and delete the previous one
-async def send_quiz_poll(client, message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-
+# Function to send a quiz poll and delete the previous one if it exists
+async def send_quiz_poll(client, message, chat_id, user_id):
     # Fetch quiz question
     question, all_answers, cid = await fetch_quiz_question()
 
-    # If there's an active poll for the user, delete it before sending the new one
+    # Delete the previous active poll if it exists
     if user_id in active_polls:
         try:
             await app.delete_messages(chat_id=chat_id, message_ids=active_polls[user_id])
         except Exception as e:
-            print(f"Failed to delete poll: {e}")
+            print(f"Failed to delete previous poll: {e}")
 
     # Send new quiz poll and save the message ID
     poll_message = await app.send_poll(
@@ -53,6 +50,7 @@ async def send_quiz_poll(client, message):
         type=PollType.QUIZ,
         correct_option_id=cid,
     )
+    # Store the message ID of the new poll
     active_polls[user_id] = poll_message.message_id
 
 # /quiz command to show time interval options
@@ -60,7 +58,7 @@ async def send_quiz_poll(client, message):
 async def quiz(client, message):
     user_id = message.from_user.id
 
-    # Creating time interval buttons and stop button arranged in 4x2 grid
+    # Create time interval buttons arranged in 4x2 grid
     keyboard = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("30s", callback_data="30_sec"), InlineKeyboardButton("1min", callback_data="1_min")],
@@ -68,7 +66,7 @@ async def quiz(client, message):
         ]
     )
 
-    # Sending the buttons with a description
+    # Send buttons with a description
     await message.reply_text(
         "**Choose how often you want the quiz to run:**\n\n"
         "- 30s: Quiz every 30 seconds\n"
@@ -79,7 +77,7 @@ async def quiz(client, message):
         reply_markup=keyboard
     )
 
-# Handling button presses for time intervals
+# Handle button presses for time intervals
 @app.on_callback_query(filters.regex(r"^\d+_sec$|^\d+_min$"))
 async def start_quiz_loop(client, callback_query):
     user_id = callback_query.from_user.id
@@ -89,7 +87,7 @@ async def start_quiz_loop(client, callback_query):
         await callback_query.answer("Quiz loop is already running!", show_alert=True)
         return
 
-    # Determine the interval based on the button pressed
+    # Determine interval based on the button pressed
     if callback_query.data == "30_sec":
         interval = 30
         interval_text = "30 seconds"
@@ -113,8 +111,8 @@ async def start_quiz_loop(client, callback_query):
 
     # Start the quiz loop with the selected interval
     while quiz_loops.get(user_id, False):
-        await send_quiz_poll(client, callback_query.message)
-        await asyncio.sleep(interval)  # Wait for the selected time interval
+        await send_quiz_poll(client, callback_query.message, chat_id, user_id)
+        await asyncio.sleep(interval)  # Wait for the selected interval before sending the next quiz
 
 # /quiz off command to stop the quiz loop
 @app.on_message(filters.command("quiz off"))
