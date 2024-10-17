@@ -30,7 +30,7 @@ async def fetch_quiz_question():
     return question, all_answers, cid
 
 # Function to send a quiz poll and delete the previous one if it exists
-async def send_quiz_poll(client, message, chat_id, user_id):
+async def send_quiz_poll(client, chat_id, user_id):
     # Fetch quiz question
     question, all_answers, cid = await fetch_quiz_question()
 
@@ -111,7 +111,7 @@ async def start_quiz_loop(client, callback_query):
 
     # Start the quiz loop with the selected interval
     while quiz_loops.get(user_id, False):
-        await send_quiz_poll(client, callback_query.message, chat_id, user_id)
+        await send_quiz_poll(client, chat_id, user_id)
         await asyncio.sleep(interval)  # Wait for the selected interval before sending the next quiz
 
 # /quiz off command to stop the quiz loop
