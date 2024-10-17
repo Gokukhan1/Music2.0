@@ -11,19 +11,14 @@ from ERAVIBES import app
 # Module metadata
 __MODULE__ = "Qᴜɪᴢ"
 __HELP__ = """
-/quiz - Sᴛᴀʀᴛs ᴛʜᴇ ǫᴜɪᴢ ᴍᴏᴅᴇ. Wʜᴇɴ ʏᴏᴜ ʀᴜɴ ᴛʜᴇ ᴄᴏᴍᴍᴀɴᴅ, ɪᴛ ᴡɪʟʟ ᴘʀᴏᴠɪᴅᴇ ʏᴏᴜ ᴡɪᴛʜ ʙᴜᴛᴛᴏɴs ᴛᴏ sᴇʟᴇᴄᴛ ᴛʜᴇ ǫᴜɪᴢ ɪɴᴛᴇʀᴠᴀʟ.
-
-/quiz [on/off] - 
-   • **On**: Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ (30 sᴇᴄᴏɴᴅs, 1 ᴍɪɴᴜᴛᴇ, 5 ᴍɪɴᴜᴛᴇs, 10 ᴍɪɴᴜᴛᴇs).
-   • **Off**: Sᴛᴏᴘ ᴛʜᴇ ǫᴜɪᴢ ʟᴏᴏᴘ.
-   • Qᴜɪᴢᴢᴇs ᴡɪʟʟ ʙᴇ sᴇɴᴛ ᴀᴛ ʏᴏᴜʀ ᴄʜᴏsᴇɴ ɪɴᴛᴇʀᴠᴀʟ ᴜɴᴛɪʟ ʏᴏᴜ sᴛᴏᴘ ɪᴛ.
+/quiz - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
 
 • **Intervals:**
    - 30 seconds
    - 1 minute
    - 5 minutes
    - 10 minutes
-   • **Stop**: Pʀᴇss ᴛʜᴇ "Sᴛᴏᴘ Qᴜɪᴢ" ʙᴜᴛᴛᴏɴ ᴛᴏ sᴛᴏᴘ ᴛʜᴇ ǫᴜɪᴢ ʟᴏᴏᴘ.
+• **Stop**: Pʀᴇss ᴛʜᴇ "Sᴛᴏᴘ Qᴜɪᴢ" ʙᴜᴛᴛᴏɴ ᴛᴏ sᴛᴏᴘ ǫᴜɪᴢ ʟᴏᴏᴘ.
 """
 
 # Dictionary to track user quiz loops and their intervals
@@ -61,23 +56,29 @@ async def send_quiz_poll(client, message):
     )
 
 # /quiz command to show time interval options
-@app.on_message(filters.command(["quiz", "uiz"], prefixes=["/", "!", ".", "Q", "q"]))
+@app.on_message(filters.command(["quiz"]))
 async def quiz(client, message):
     user_id = message.from_user.id
 
-    # Creating time interval buttons and stop button
+    # Creating time interval buttons and stop button arranged in 4x2 grid
     keyboard = InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("Every 30 seconds", callback_data="30_sec")],
-            [InlineKeyboardButton("Every 1 minute", callback_data="1_min")],
-            [InlineKeyboardButton("Every 5 minutes", callback_data="5_min")],
-            [InlineKeyboardButton("Every 10 minutes", callback_data="10_min")],
-            [InlineKeyboardButton("Stop Quiz", callback_data="stop_quiz")]
+            [InlineKeyboardButton("30s", callback_data="30_sec"), InlineKeyboardButton("1min", callback_data="1_min")],
+            [InlineKeyboardButton("5min", callback_data="5_min"), InlineKeyboardButton("10min", callback_data="10_min")],
+            [InlineKeyboardButton("Stop Quiz", callback_data="stop_quiz")],
         ]
     )
 
-    # Sending only the buttons, no extra text
-    await message.reply_text("Select your preferred quiz interval:", reply_markup=keyboard)
+    # Sending the buttons with a description
+    await message.reply_text(
+        "**Choose how often you want the quiz to run:**\n\n"
+        "- 30s: Quiz every 30 seconds\n"
+        "- 1min: Quiz every 1 minute\n"
+        "- 5min: Quiz every 5 minutes\n"
+        "- 10min: Quiz every 10 minutes\n\n"
+        "**Press 'Stop Quiz' to stop the quiz loop at any time.**",
+        reply_markup=keyboard
+    )
 
 # Handling button presses for time intervals
 @app.on_callback_query(filters.regex(r"^\d+_sec$|^\d+_min$"))
@@ -89,7 +90,7 @@ async def start_quiz_loop(client, callback_query):
         await callback_query.answer("Quiz loop is already running!", show_alert=True)
         return
 
-    # Set interval based on button press
+    # Determine the interval based on the button pressed
     if callback_query.data == "30_sec":
         interval = 30
         interval_text = "30 seconds"
@@ -103,12 +104,15 @@ async def start_quiz_loop(client, callback_query):
         interval = 600
         interval_text = "10 minutes"
 
+    # Delete the original message with buttons
+    await callback_query.message.delete()
+
     # Confirm that the quiz loop has started
-    await callback_query.answer(f"Quiz loop started! You'll receive a quiz every {interval_text}.", show_alert=True)
-    
+    await callback_query.message.reply_text(f"✅ Quiz loop started! You'll receive a quiz every {interval_text}.")
+
     quiz_loops[user_id] = True  # Mark loop as running
 
-    # Start the quiz loop based on the chosen interval
+    # Start the quiz loop with the selected interval
     while quiz_loops.get(user_id, False):
         await send_quiz_poll(client, callback_query.message)
         await asyncio.sleep(interval)  # Wait for the selected time interval
@@ -122,4 +126,5 @@ async def stop_quiz_loop(client, callback_query):
         await callback_query.answer("No quiz loop is running!", show_alert=True)
     else:
         quiz_loops.pop(user_id)  # Stop the loop
-        await callback_query.answer("Quiz loop stopped!", show_alert=True)
+        await callback_query.message.delete()  # Remove the old message
+        await callback_query.message.reply_text("⛔ Quiz loop stopped!")
