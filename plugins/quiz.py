@@ -1,28 +1,15 @@
 import random
 import requests
-import time
 import asyncio
 
 from pyrogram import filters
-from pyrogram.enums import PollType, ChatAction
+from pyrogram.enums import PollType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from ERAVIBES import app
 
-# Module metadata
-__MODULE__ = "Qᴜɪᴢ"
-__HELP__ = """
-/quiz - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
-
-• **Intervals:**
-   - 30 seconds
-   - 1 minute
-   - 5 minutes
-   - 10 minutes
-• **Stop**: Pʀᴇss ᴛʜᴇ "Sᴛᴏᴘ Qᴜɪᴢ" ʙᴜᴛᴛᴏɴ ᴛᴏ sᴛᴏᴘ ǫᴜɪᴢ ʟᴏᴏᴘ.
-"""
-
 # Dictionary to track user quiz loops and their intervals
 quiz_loops = {}
+active_polls = {}  # To track active poll messages for each user
 
 # Function to fetch a quiz question from the API
 async def fetch_quiz_question():
@@ -42,21 +29,34 @@ async def fetch_quiz_question():
 
     return question, all_answers, cid
 
-# Function to send a quiz poll
+# Function to send a quiz poll and delete the previous one
 async def send_quiz_poll(client, message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    # Fetch quiz question
     question, all_answers, cid = await fetch_quiz_question()
 
-    await app.send_poll(
-        chat_id=message.chat.id,
+    # If there's an active poll for the user, delete it before sending the new one
+    if user_id in active_polls:
+        try:
+            await app.delete_messages(chat_id=chat_id, message_ids=active_polls[user_id])
+        except Exception as e:
+            print(f"Failed to delete poll: {e}")
+
+    # Send new quiz poll and save the message ID
+    poll_message = await app.send_poll(
+        chat_id=chat_id,
         question=question,
         options=all_answers,
         is_anonymous=False,
         type=PollType.QUIZ,
         correct_option_id=cid,
     )
+    active_polls[user_id] = poll_message.message_id
 
 # /quiz command to show time interval options
-@app.on_message(filters.command(["quiz"]))
+@app.on_message(filters.command("quiz"))
 async def quiz(client, message):
     user_id = message.from_user.id
 
@@ -65,7 +65,6 @@ async def quiz(client, message):
         [
             [InlineKeyboardButton("30s", callback_data="30_sec"), InlineKeyboardButton("1min", callback_data="1_min")],
             [InlineKeyboardButton("5min", callback_data="5_min"), InlineKeyboardButton("10min", callback_data="10_min")],
-            [InlineKeyboardButton("Stop Quiz", callback_data="stop_quiz")],
         ]
     )
 
@@ -76,7 +75,7 @@ async def quiz(client, message):
         "- 1min: Quiz every 1 minute\n"
         "- 5min: Quiz every 5 minutes\n"
         "- 10min: Quiz every 10 minutes\n\n"
-        "**Press 'Stop Quiz' to stop the quiz loop at any time.**",
+        "**Use** `/quiz off` **to stop the quiz loop at any time.**",
         reply_markup=keyboard
     )
 
@@ -117,14 +116,34 @@ async def start_quiz_loop(client, callback_query):
         await send_quiz_poll(client, callback_query.message)
         await asyncio.sleep(interval)  # Wait for the selected time interval
 
-# Handling the stop button press
-@app.on_callback_query(filters.regex("stop_quiz"))
-async def stop_quiz_loop(client, callback_query):
-    user_id = callback_query.from_user.id
+# /quiz off command to stop the quiz loop
+@app.on_message(filters.command("quiz off"))
+async def stop_quiz(client, message):
+    user_id = message.from_user.id
 
     if user_id not in quiz_loops:
-        await callback_query.answer("No quiz loop is running!", show_alert=True)
+        await message.reply_text("No quiz loop is running.")
     else:
         quiz_loops.pop(user_id)  # Stop the loop
-        await callback_query.message.delete()  # Remove the old message
-        await callback_query.message.reply_text("⛔ Quiz loop stopped!")
+        await message.reply_text("⛔ Quiz loop stopped!")
+
+        # Delete the active poll if there's one
+        if user_id in active_polls:
+            try:
+                await app.delete_messages(chat_id=message.chat.id, message_ids=active_polls[user_id])
+                active_polls.pop(user_id)
+            except Exception as e:
+                print(f"Failed to delete active poll: {e}")
+
+
+__MODULE__ = "Qᴜɪᴢ"
+__HELP__ = """
+/quiz - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
+
+• **Intervals:**
+   - 30 seconds
+   - 1 minute
+   - 5 minutes
+   - 10 minutes
+•  "**Use** `/quiz off` **to stop the quiz loop at any time.**".
+"""
