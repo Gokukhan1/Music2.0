@@ -63,7 +63,7 @@ async def quiz_info(client, message):
     await message.reply_text(
         "**Welcome to the Quiz Bot!**\n\n"
         "Here is how it works:\n"
-        "1. Use `/quiz on` to start a quiz loop. After you start, you will be asked to choose a time interval for the quiz.\n"
+        "1. Use `/quizon` to start a quiz loop. After you start, you will be asked to choose a time interval for the quiz.\n"
         "2. The available intervals are:\n"
         "   - 30 seconds\n"
         "   - 1 minute\n"
@@ -72,13 +72,13 @@ async def quiz_info(client, message):
         "3. Once you choose an interval, the quiz will start, and you will get a new question at the chosen interval. Each quiz will automatically close after a specific time.\n"
         "4. Use `/quiz off` to stop the quiz loop at any time.\n\n"
         "**Commands**:\n"
-        "• `/quiz on` - Start the quiz loop\n"
-        "• `/quiz off` - Stop the quiz loop\n\n"
+        "• `/quizon` - Start the quiz loop\n"
+        "• `/quizoff` - Stop the quiz loop\n\n"
         "Enjoy the quizzes! 🎉"
     )
 
 # /quiz on command to show time interval options
-@app.on_message(filters.command(["quiz on", "uiz on"], prefixes=["/", "!", ".", "Q", "q"]))
+@app.on_message(filters.command(["quizon", "uizon"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz_on(client, message):
     user_id = message.from_user.id
 
@@ -139,7 +139,7 @@ async def start_quiz_loop(client, callback_query):
         await asyncio.sleep(interval)  # Wait for the selected interval before sending the next quiz
 
 # /quiz off command to stop the quiz loop
-@app.on_message(filters.command(["quiz off", "uiz off"], prefixes=["/", "!", ".", "Q", "q"]))
+@app.on_message(filters.command(["quizoff", "uizoff"], prefixes=["/", "!", ".", "Q", "q"]))
 async def stop_quiz(client, message):
     user_id = message.from_user.id
 
@@ -161,8 +161,8 @@ async def stop_quiz(client, message):
 __MODULE__ = "Qᴜɪᴢ"
 __HELP__ = """
 **Quiz Bot Help**
-- Use `/quiz on` to start the quiz loop. You will be prompted to select a time interval for quizzes.
-- Use `/quiz off` to stop the quiz loop at any time.
+- Use `/quizon` to start the quiz loop. You will be prompted to select a time interval for quizzes.
+- Use `/quizoff` to stop the quiz loop at any time.
 - Quizzes will be sent at the specified intervals, with each poll lasting for a set time.
 - The bot will handle the countdown and notify you when a quiz is sent.
 """
