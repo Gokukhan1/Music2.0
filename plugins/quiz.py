@@ -55,7 +55,7 @@ async def send_quiz_poll(client, chat_id, user_id, interval):
     if poll_message:
         active_polls[user_id] = poll_message.id  # Corrected to use `.id`
 
-@app.on_message(filters.command("quiz"))
+@app.on_message(filters.command(["quiz", "uiz"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz_info(client, message):
     user_id = message.from_user.id
 
@@ -78,7 +78,7 @@ async def quiz_info(client, message):
     )
 
 # /quiz on command to show time interval options
-@app.on_message(filters.command("quiz on"))
+@app.on_message(filters.command(["quiz on", "uiz on"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz_on(client, message):
     user_id = message.from_user.id
 
@@ -108,7 +108,7 @@ async def start_quiz_loop(client, callback_query):
     chat_id = callback_query.message.chat.id
 
     if user_id in quiz_loops:
-        await callback_query.answer("Quiz loop is already running!", show_alert=True)
+        await callback_query.answer("Qᴜɪᴢ ʟᴏᴏᴘ ɪs ᴀʟʀᴇᴀᴅʏ ʀᴜɴɴɪɴɢ...!!", show_alert=True)
         return
 
     # Determine interval based on the button pressed
@@ -129,7 +129,7 @@ async def start_quiz_loop(client, callback_query):
     await callback_query.message.delete()
 
     # Confirm that the quiz loop has started
-    await callback_query.message.reply_text(f"✅ Quiz loop started! You'll receive a quiz every {interval_text}.")
+    await callback_query.message.reply_text(f"✅ Qᴜɪᴢ ʟᴏᴏᴘ sᴛᴀʀᴛᴇᴅ! Yᴏᴜ'ʟʟ ʀᴇᴄᴇɪᴠᴇ ᴀ ǫᴜɪᴢ ᴇᴠᴇʀʏ {interval_text}.")
 
     quiz_loops[user_id] = True  # Mark loop as running
 
@@ -139,15 +139,15 @@ async def start_quiz_loop(client, callback_query):
         await asyncio.sleep(interval)  # Wait for the selected interval before sending the next quiz
 
 # /quiz off command to stop the quiz loop
-@app.on_message(filters.command("quiz off"))
+@app.on_message(filters.command(["quiz off", "uiz off"], prefixes=["/", "!", ".", "Q", "q"]))
 async def stop_quiz(client, message):
     user_id = message.from_user.id
 
     if user_id not in quiz_loops:
-        await message.reply_text("No quiz loop is running.")
+        await message.reply_text("Nᴏ ǫᴜɪᴢ ʟᴏᴏᴘ ɪs ʀᴜɴɴɪɴɢ.")
     else:
         quiz_loops.pop(user_id)  # Stop the loop
-        await message.reply_text("⛔ Quiz loop stopped!")
+        await message.reply_text("⛔ Qᴜɪᴢ ʟᴏᴏᴘ sᴛᴏᴘᴘᴇᴅ...!!")
 
         # Delete the active poll if there's one
         if user_id in active_polls:
