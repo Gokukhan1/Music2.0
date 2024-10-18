@@ -53,9 +53,9 @@ async def send_quiz_poll(client, chat_id, user_id):
     # Store the message ID of the new poll
     active_polls[user_id] = poll_message.message_id
 
-# /quiz command to show time interval options
-@app.on_message(filters.command("quiz"))
-async def quiz(client, message):
+# /quiz on command to show time interval options
+@app.on_message(filters.command("quiz on"))
+async def quiz_on(client, message):
     user_id = message.from_user.id
 
     # Create time interval buttons arranged in 4x2 grid
@@ -136,7 +136,7 @@ async def stop_quiz(client, message):
 
 __MODULE__ = "Qᴜɪᴢ"
 __HELP__ = """
-/quiz - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
+/quiz on - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
 
 • **Intervals:**
    - 30 seconds
