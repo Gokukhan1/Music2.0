@@ -1,7 +1,6 @@
 import random
 import requests
 import asyncio
-
 from pyrogram import filters
 from pyrogram.enums import PollType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -10,6 +9,7 @@ from ERAVIBES import app
 # Track quiz loops and active polls per user
 quiz_loops = {}
 active_polls = {}  # To track active poll messages for each user
+active_timers = {}  # To track countdown messages for each user
 
 # Function to fetch a quiz question from the API
 async def fetch_quiz_question():
@@ -29,25 +29,28 @@ async def fetch_quiz_question():
 
     return question, all_answers, cid
 
-# Function to send a quiz poll with time included in the question
+# Function to send a quiz poll and start countdown timer
 async def send_quiz_poll(client, chat_id, user_id, interval):
     # Fetch quiz question
     question, all_answers, cid = await fetch_quiz_question()
 
-    # Modify question to include time left before the poll gets deleted
-    modified_question = f"{question}\n\n⏳ Next quiz in {interval // 60} minute(s)" if interval >= 60 else f"{question}\n\n⏳ Next quiz in {interval} second(s)"
-
-    # Delete the previous active poll if it exists
+    # Delete the previous active poll and timer if they exist
     if user_id in active_polls:
         try:
             await app.delete_messages(chat_id=chat_id, message_ids=active_polls[user_id])
         except Exception as e:
             print(f"Failed to delete previous poll: {e}")
+    
+    if user_id in active_timers:
+        try:
+            await app.delete_messages(chat_id=chat_id, message_ids=active_timers[user_id])
+        except Exception as e:
+            print(f"Failed to delete previous timer: {e}")
 
     # Send new quiz poll and save the message ID
     poll_message = await app.send_poll(
         chat_id=chat_id,
-        question=modified_question,
+        question=question,
         options=all_answers,
         is_anonymous=False,
         type=PollType.QUIZ,
@@ -57,6 +60,28 @@ async def send_quiz_poll(client, chat_id, user_id, interval):
     # Store the message ID of the new poll
     if poll_message:
         active_polls[user_id] = poll_message.id  # Corrected to use `.id`
+
+    # Send countdown timer message
+    timer_message = await client.send_message(chat_id, f"⏳ Time left: {interval // 60} minute(s)")
+
+    # Update the countdown timer every second
+    for remaining_time in range(interval, 0, -1):
+        try:
+            await client.edit_message_text(
+                chat_id=chat_id,
+                message_id=timer_message.id,
+                text=f"⏳ Time left: {remaining_time // 60} minute(s) {remaining_time % 60} second(s)"
+            )
+            await asyncio.sleep(1)  # Wait 1 second before updating the timer
+        except Exception as e:
+            print(f"Failed to update timer: {e}")
+            break
+
+    # Delete the poll and timer after the countdown reaches 0
+    try:
+        await app.delete_messages(chat_id=chat_id, message_ids=[poll_message.id, timer_message.id])
+    except Exception as e:
+        print(f"Failed to delete poll and timer: {e}")
 
 # /quiz on command to show time interval options
 @app.on_message(filters.command("quiz on"))
@@ -130,10 +155,17 @@ async def stop_quiz(client, message):
         quiz_loops.pop(user_id)  # Stop the loop
         await message.reply_text("⛔ Quiz loop stopped!")
 
-        # Delete the active poll if there's one
+        # Delete the active poll and timer if there's one
         if user_id in active_polls:
             try:
                 await app.delete_messages(chat_id=message.chat.id, message_ids=active_polls[user_id])
                 active_polls.pop(user_id)
             except Exception as e:
                 print(f"Failed to delete active poll: {e}")
+        
+        if user_id in active_timers:
+            try:
+                await app.delete_messages(chat_id=message.chat.id, message_ids=active_timers[user_id])
+                active_timers.pop(user_id)
+            except Exception as e:
+                print(f"Failed to delete active timer: {e}")
