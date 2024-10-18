@@ -97,7 +97,7 @@ async def quiz_on(client, message):
         "- 1min: Quiz every 1 minute\n"
         "- 5min: Quiz every 5 minutes\n"
         "- 10min: Quiz every 10 minutes\n\n"
-        "**Use** `/quiz off` **to stop the quiz loop at any time.**",
+        "**Use** `/quizoff` **to stop the quiz loop at any time.**",
         reply_markup=keyboard
     )
 
