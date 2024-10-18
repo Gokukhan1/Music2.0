@@ -50,8 +50,10 @@ async def send_quiz_poll(client, chat_id, user_id):
         type=PollType.QUIZ,
         correct_option_id=cid,
     )
+
     # Store the message ID of the new poll
-    active_polls[user_id] = poll_message.message_id
+    if poll_message:
+        active_polls[user_id] = poll_message.id  # Corrected to use `.id`
 
 # /quiz on command to show time interval options
 @app.on_message(filters.command("quiz on"))
@@ -132,16 +134,3 @@ async def stop_quiz(client, message):
                 active_polls.pop(user_id)
             except Exception as e:
                 print(f"Failed to delete active poll: {e}")
-
-
-__MODULE__ = "Qᴜɪᴢ"
-__HELP__ = """
-/quiz on - Sᴛᴀʀᴛ ǫᴜɪᴢ ᴍᴏᴅᴇ. Sᴇʟᴇᴄᴛ ᴛʜᴇ ɪɴᴛᴇʀᴠᴀʟ ғᴏʀ ǫᴜɪᴢᴢᴇs ᴛᴏ ʙᴇ sᴇɴᴛ. 
-
-• **Intervals:**
-   - 30 seconds
-   - 1 minute
-   - 5 minutes
-   - 10 minutes
-•  "**Use** `/quiz off` **to stop the quiz loop at any time.**".
-"""
