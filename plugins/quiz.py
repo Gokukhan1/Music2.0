@@ -46,7 +46,8 @@ async def send_quiz_poll(client, chat_id, user_id, interval):
         question=question,
         options=all_answers,
         is_anonymous=False,
-        type=PollType.REGULAR,  # Use "regular" poll to allow multiple answers
+        type=PollType.QUIZ,
+        #correct_option_id=cid,
         allows_multiple_answers=True,  # Allow multiple answers
         open_period=interval  # Countdown timer for the poll in seconds
     )
