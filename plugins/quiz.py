@@ -8,7 +8,7 @@ from ERAVIBES import app
 
 # Track quiz loops and active polls per user
 quiz_loops = {}
-active_polls = {}  # To track active poll messages for each user
+active_polls = {}
 
 # Function to fetch a quiz question from the API
 async def fetch_quiz_question():
@@ -30,17 +30,14 @@ async def fetch_quiz_question():
 
 # Function to send a quiz poll with an open_period for countdown
 async def send_quiz_poll(client, chat_id, user_id, interval):
-    # Fetch quiz question
     question, all_answers, cid = await fetch_quiz_question()
 
-    # Delete the previous active poll if it exists
     if user_id in active_polls:
         try:
             await app.delete_messages(chat_id=chat_id, message_ids=active_polls[user_id])
         except Exception as e:
             print(f"Failed to delete previous poll: {e}")
 
-    # Send new quiz poll with a countdown using open_period
     poll_message = await app.send_poll(
         chat_id=chat_id,
         question=question,
@@ -48,19 +45,37 @@ async def send_quiz_poll(client, chat_id, user_id, interval):
         is_anonymous=False,
         type=PollType.QUIZ,
         correct_option_id=cid,
-        open_period=interval  # Countdown timer for the poll in seconds
+        open_period=interval  # Countdown timer in seconds
     )
 
-    # Store the message ID of the new poll
     if poll_message:
-        active_polls[user_id] = poll_message.id  # Corrected to use `.id`
+        active_polls[user_id] = poll_message.id
+
+    # Simulating a "CSS-like" timer message
+    countdown_message = await client.send_message(
+        chat_id=chat_id,
+        text=f"🕒 **Quiz starts now!** Poll is active for `{interval}` seconds.\n"
+             f"Countdown: `{interval}` seconds remaining...",
+    )
+
+    # Update countdown every 5 seconds
+    for i in range(interval, 0, -5):
+        await asyncio.sleep(5)
+        try:
+            await countdown_message.edit_text(
+                f"🕒 **Quiz is active!** `{i-5}` seconds remaining..."
+            )
+        except Exception as e:
+            print(f"Failed to update timer message: {e}")
+    
+    # Finally delete the countdown message
+    await countdown_message.delete()
 
 # /quiz on command to show time interval options
 @app.on_message(filters.command("quiz on"))
 async def quiz_on(client, message):
     user_id = message.from_user.id
 
-    # Create time interval buttons arranged in 4x2 grid
     keyboard = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("30s", callback_data="30_sec"), InlineKeyboardButton("1min", callback_data="1_min")],
@@ -68,14 +83,15 @@ async def quiz_on(client, message):
         ]
     )
 
-    # Send buttons with a description
+    # Informational message
     await message.reply_text(
-        "**Choose how often you want the quiz to run:**\n\n"
-        "- 30s: Quiz every 30 seconds\n"
-        "- 1min: Quiz every 1 minute\n"
-        "- 5min: Quiz every 5 minutes\n"
-        "- 10min: Quiz every 10 minutes\n\n"
-        "**Use** `/quiz off` **to stop the quiz loop at any time.**",
+        "ℹ️ **Quiz Bot Instructions**:\n\n"
+        "Use the buttons below to select how frequently you want to receive quizzes.\n"
+        "- **30s**: Receive a quiz every 30 seconds.\n"
+        "- **1min**: Receive a quiz every 1 minute.\n"
+        "- **5min**: Receive a quiz every 5 minutes.\n"
+        "- **10min**: Receive a quiz every 10 minutes.\n\n"
+        "You can stop the quiz anytime using the `/quiz off` command.",
         reply_markup=keyboard
     )
 
@@ -89,7 +105,6 @@ async def start_quiz_loop(client, callback_query):
         await callback_query.answer("Quiz loop is already running!", show_alert=True)
         return
 
-    # Determine interval based on the button pressed
     if callback_query.data == "30_sec":
         interval = 30
         interval_text = "30 seconds"
@@ -103,18 +118,15 @@ async def start_quiz_loop(client, callback_query):
         interval = 600
         interval_text = "10 minutes"
 
-    # Delete the original message with buttons
     await callback_query.message.delete()
 
-    # Confirm that the quiz loop has started
-    await callback_query.message.reply_text(f"✅ Quiz loop started! You'll receive a quiz every {interval_text}.")
+    await callback_query.message.reply_text(f"✅ Quiz loop started! You’ll get a new quiz every {interval_text}.")
 
-    quiz_loops[user_id] = True  # Mark loop as running
+    quiz_loops[user_id] = True
 
-    # Start the quiz loop with the selected interval
     while quiz_loops.get(user_id, False):
         await send_quiz_poll(client, chat_id, user_id, interval)
-        await asyncio.sleep(interval)  # Wait for the selected interval before sending the next quiz
+        await asyncio.sleep(interval)
 
 # /quiz off command to stop the quiz loop
 @app.on_message(filters.command("quiz off"))
@@ -122,12 +134,11 @@ async def stop_quiz(client, message):
     user_id = message.from_user.id
 
     if user_id not in quiz_loops:
-        await message.reply_text("No quiz loop is running.")
+        await message.reply_text("❌ No quiz loop is currently running.")
     else:
-        quiz_loops.pop(user_id)  # Stop the loop
-        await message.reply_text("⛔ Quiz loop stopped!")
+        quiz_loops.pop(user_id)
+        await message.reply_text("⛔ Quiz loop stopped.")
 
-        # Delete the active poll if there's one
         if user_id in active_polls:
             try:
                 await app.delete_messages(chat_id=message.chat.id, message_ids=active_polls[user_id])
