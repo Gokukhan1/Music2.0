@@ -22,7 +22,7 @@ def smallcap(text):
     return text.translate(trans_table)
 
 
-@app.on_message(filters.command("autoapprove") & filters.group)
+@app.on_message(filters.command(["autoapprove", "utoapprove", "a"], prefixes=["/", "!", ".", "A", "a"]) & filters.group)
 @adminsOnly("can_change_info")
 async def approval_command(client, message):
     chat_id = message.chat.id
@@ -109,7 +109,7 @@ from asyncio import sleep
 # Dictionary to track approval tasks by chat_id
 approval_tasks = {}
 
-@app.on_message(filters.command("approveall") & filters.group)
+@app.on_message(filters.command(["approveall", "pproveall", "pall"], prefixes=["/", "!", ".", "A", "a"]) & filters.group)
 @adminsOnly("can_restrict_members")
 async def approve_all(client, message):
     userbot = await get_assistant(message.chat.id)
@@ -162,7 +162,7 @@ async def cancel_approval_callback(client, callback_query):
     await callback_query.message.edit_text("ᴀᴘᴘʀᴏᴠᴀʟ ᴘʀᴏᴄᴇss ᴄᴀɴᴄᴇʟᴇᴅ.")
 
 
-@app.on_message(filters.command(["clearpending", "unapproveall"]) & filters.group)
+@app.on_message(filters.command(["clearpending", "unapproveall", "p"], prefixes=["/", "!", ".", "C", "c"]) & filters.group)
 @adminsOnly("can_restrict_members")
 async def clear_pending_command(client, message):
     chat_id = message.chat.id
