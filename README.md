@@ -12,7 +12,7 @@
 
 ### 🖇 VPS Deployment
 - Get your [Necessary Variables](https://github.com/IamDvis/DV-MUSIC/blob/master/sample.env)
-- clone repo : `git clone https://github.com/IamDvis/ERAVIBES && cd ERAVIBES`
+- clone repo : `git clone https://github.com/IamDvis/DV-MUSIC && cd DV-MUSIC`
 - Setup by : `bash setup`
 - Install tmux to keep running your bot when you close the terminal by :
 `sudo apt install tmux && tmux`
