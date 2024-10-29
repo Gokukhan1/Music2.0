@@ -29,14 +29,14 @@ async def RemoveBG(input_file_name):
             if "image" not in contentType:
                 return False, (await y.json())
 
-            name = check_filename("alpha.png")
+            name = check_filename("era.png")
             file = await aiofiles.open(name, "wb")
             await file.write(await y.read())
             await file.close()
             return True, name
 
 
-@app.on_message(filters.command(["rmbg", "mgb"], prefixes=["/", ".", "!", "R", "r"]))
+@app.on_message(filters.command(["rmbg", "mbg"], prefixes=["/", ".", "!", "R", "r"]))
 async def rmbg(bot, message):
     rmbg = await message.reply("Processing...") 
     replied = message.reply_to_message
