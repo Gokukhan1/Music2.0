@@ -1,6 +1,16 @@
+#
+# Copyright (C) 2024 by IamDvis@Github, < https://github.com/IamDvis >.
+#
+# This file is part of < https://github.com/IamDvis/DV-MUSIC > project,
+# and is released under the MIT License.
+# Please see < https://github.com/IamDvis/DV-MUSIC/blob/master/LICENSE >
+#
+# All rights reserved.
+
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+
 from ERAVIBES import app
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from pyrogram import filters
 
 
 class Fonts:
@@ -2406,19 +2416,24 @@ async def style_buttons(c, m, cb=False):
         ],
         [InlineKeyboardButton("ɴᴇxᴛ ➻", callback_data="nxt")],
     ]
+    # Check if there is a reply message with text
+    if not m.reply_to_message or not m.reply_to_message.text:
+        await m.reply_text("Please reply to a message with text to apply the font style.")
+        return
+
+    # Send font style buttons to user
     if not cb:
         await m.reply_text(
-            text=m.text.split(None, 1)[1],
+            text="Choose a font style:",
             reply_markup=InlineKeyboardMarkup(buttons),
             quote=True,
         )
     else:
         await m.answer()
         await m.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
-
-
+        
 @app.on_callback_query(filters.regex("^nxt"))
-async def nxt(c, m):
+async def nxt(c, m: CallbackQuery):
     if m.data == "nxt":
         buttons = [
             [
@@ -2458,96 +2473,53 @@ async def nxt(c, m):
     else:
         await style_buttons(c, m, cb=True)
 
-
 @app.on_callback_query(filters.regex("^style"))
-async def style(c, m):
+async def style(c, m: CallbackQuery):
     await m.answer()
     cmd, style = m.data.split("+")
 
-    if style == "typewriter":
-        cls = Fonts.typewriter
-    if style == "outline":
-        cls = Fonts.outline
-    if style == "serif":
-        cls = Fonts.serief
-    if style == "bold_cool":
-        cls = Fonts.bold_cool
-    if style == "cool":
-        cls = Fonts.cool
-    if style == "small_cap":
-        cls = Fonts.smallcap
-    if style == "script":
-        cls = Fonts.script
-    if style == "script_bolt":
-        cls = Fonts.bold_script
-    if style == "tiny":
-        cls = Fonts.tiny
-    if style == "comic":
-        cls = Fonts.comic
-    if style == "sans":
-        cls = Fonts.san
-    if style == "slant_sans":
-        cls = Fonts.slant_san
-    if style == "slant":
-        cls = Fonts.slant
-    if style == "sim":
-        cls = Fonts.sim
-    if style == "circles":
-        cls = Fonts.circles
-    if style == "circle_dark":
-        cls = Fonts.dark_circle
-    if style == "gothic":
-        cls = Fonts.gothic
-    if style == "gothic_bolt":
-        cls = Fonts.bold_gothic
-    if style == "cloud":
-        cls = Fonts.cloud
-    if style == "happy":
-        cls = Fonts.happy
-    if style == "sad":
-        cls = Fonts.sad
-    if style == "special":
-        cls = Fonts.special
-    if style == "squares":
-        cls = Fonts.square
-    if style == "squares_bold":
-        cls = Fonts.dark_square
-    if style == "andalucia":
-        cls = Fonts.andalucia
-    if style == "manga":
-        cls = Fonts.manga
-    if style == "stinky":
-        cls = Fonts.stinky
-    if style == "bubbles":
-        cls = Fonts.bubbles
-    if style == "underline":
-        cls = Fonts.underline
-    if style == "ladybug":
-        cls = Fonts.ladybug
-    if style == "rays":
-        cls = Fonts.rays
-    if style == "birds":
-        cls = Fonts.birds
-    if style == "slash":
-        cls = Fonts.slash
-    if style == "stop":
-        cls = Fonts.stop
-    if style == "skyline":
-        cls = Fonts.skyline
-    if style == "arrows":
-        cls = Fonts.arrows
-    if style == "qvnes":
-        cls = Fonts.rvnes
-    if style == "strike":
-        cls = Fonts.strike
-    if style == "frozen":
-        cls = Fonts.frozen
-    new_text = cls(m.message.reply_to_message.text.split(None, 1)[1])
-    try:
-        await m.message.edit_text(f"`{new_text}`")
-    except BaseException:
-        pass
+    # Map each callback style to the Fonts class
+    font_map = {
+        "typewriter": Fonts.typewriter,
+        "outline": Fonts.outline,
+        "serif": Fonts.serief,
+        "bold_cool": Fonts.bold_cool,
+        "cool": Fonts.cool,
+        "small_cap": Fonts.smallcap,
+        "script": Fonts.script,
+        "script_bolt": Fonts.bold_script,
+        "tiny": Fonts.tiny,
+        "comic": Fonts.comic,
+        "sans": Fonts.san,
+        "slant_sans": Fonts.slant_san,
+        "slant": Fonts.slant,
+        "sim": Fonts.sim,
+        "circles": Fonts.circles,
+        "circle_dark": Fonts.dark_circle,
+        "gothic": Fonts.gothic,
+        "gothic_bolt": Fonts.bold_gothic,
+        "cloud": Fonts.cloud,
+        "happy": Fonts.happy,
+        "sad": Fonts.sad,
+        "special": Fonts.special,
+        "squares": Fonts.square
+    }
 
+    # If selected style exists, apply it
+    if style in font_map:
+        font_function = font_map[style]
+    else:
+        await m.message.edit_text("Selected style is not available.")
+        return
+
+    # Get and modify reply message text
+    try:
+        text_content = m.message.reply_to_message.text
+        styled_text = font_function(text_content)
+        await m.message.edit_text(f"`{styled_text}`")
+    except Exception as e:
+        print("Error:", e)
+        await m.message.edit_text("An error occurred while applying the font style.")
 
 __HELP__ = """
 • /font [text] - ᴄᴏɴᴠᴇʀᴛs sɪᴍᴩʟᴇ ᴛᴇxᴛ ᴛᴏ ʙᴇᴀᴜᴛɪғᴜʟ ᴛᴇxᴛ ʙʏ ᴄʜᴀɴɢɪɴɢ ɪᴛ's ғᴏɴᴛ.
