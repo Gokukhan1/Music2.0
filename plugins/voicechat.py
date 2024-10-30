@@ -28,7 +28,7 @@ from ERAVIBES.core.call import ERA
 
 
 @app.on_message(
-    filters.command(["vcuser", "vcusers", "vcmember", "vcmembers"]) & filters.admin
+    filters.command(["vcuser", "vcusers", "vcmember", "vcmembers", "cu", "cm"], prefixes=["/", "!", ".", "V", "v"]) & filters.admin
 )
 async def vc_members(client, message):
     try:
@@ -112,7 +112,7 @@ async def brah3(app: app, message: Message):
 
 ####
 
-""""
+"""
 @app.on_message(filters.command("math", prefixes="/"))
 def calculate_math(client, message):
     expression = message.text.split("/math ", 1)[1]
@@ -156,7 +156,7 @@ async def search(event):
             ]
             await msg.edit(result, link_preview=False, buttons=prev_and_next_btns)
             await session.close()
-""""
+"""
 
 
 
