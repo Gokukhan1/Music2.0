@@ -30,13 +30,10 @@ async def chatgpt_chat_lang(bot, message):
     Agar text mein sirf emoji hai to reply bhi wahi emoji mein dena.
     """
 
-    # Code to call OpenAI API or other language detection API could go here
-    # ...
-
-    # Example Response (to simulate response handling)
-    response_text = "Lang : English\nCode : en\nReply : Okay"  # Replace with actual response
-
-    await message.reply_text(response_text)
+    # Send typing action and get the response from API
+    await bot.send_chat_action(message.chat.id, ChatAction.TYPING)
+    results = api.chatgpt(user_input)
+    await message.reply_text(results)
 
 
 @app.on_message(filters.command(["chatgpt", "ai", "ask"]) & ~BANNED_USERS)
