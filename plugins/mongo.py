@@ -11,7 +11,7 @@ from ERAVIBES.utils.pastebin import ERAbin
 
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 
-@app.on_message(filters.command(["mongochk", "ongochk", "chk"], prefixes=["/", "!", ".", "M", "m"]) & SUDOERS)
+@app.on_message(filters.command(["mongochk", "ongochk", "chk"], prefixes=["/", "!", "M", "m"]) & SUDOERS)
 async def mongo_check_command(client, message: Message):
     if len(message.command) < 2:
         await message.reply("Please provide your MongoDB URL with the command: `/mongochk your_mongo_url`")
