@@ -1,6 +1,8 @@
 # Extra Plugins For [BABY_BOT](https://github.com/Gokukhan1/Music2.0)
 
-https://envs.sh/St6.jpg
+<p align="center">
+  <img src="https://files.catbox.moe/edeh8k.jpg">
+</p>
 
 ## Deployment for [BABY_BOT](https://github.com/Gokukhan1/Music2)
 
